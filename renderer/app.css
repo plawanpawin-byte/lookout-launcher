@@ -1,0 +1,6 @@
+.app-row{display:flex;align-items:center;gap:14px;padding:12px 14px;border:1px solid var(--line);border-radius:8px;margin-top:10px;background:var(--bg-2)}
+.app-row img{border-radius:10px}
+.nav{display:flex;justify-content:space-between;padding:7px 10px;border-radius:6px;cursor:pointer;font-size:13px}
+.nav:hover{background:rgba(255,255,255,.06)}
+.nav.on{background:rgba(255,255,255,.12)}
+.notice{margin-top:12px;padding:10px 12px;border:1px solid var(--line);border-radius:6px;font-size:13px}
