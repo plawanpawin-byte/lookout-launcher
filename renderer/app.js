@@ -32,7 +32,10 @@ async function refresh(force) {
   catch (e) { state.loading = false; toast('Could not read app status'); }
   render();
 }
-const visible = () => state.apps.filter((a) => filter === 'all' || (filter === 'installed' && a.installed) || (filter === 'updates' && a.update) || a.group === filter);
+let q = '';
+const search = h('input', { type: 'search', placeholder: 'Search apps', 'aria-label': 'Search apps', oninput: (e) => { q = e.target.value.trim().toLowerCase(); renderList(); } });
+const matches = (a) => !q || (a.name + ' ' + (a.group || '')).toLowerCase().includes(q);
+const visible = () => state.apps.filter(matches).filter((a) => filter === 'all' || (filter === 'installed' && a.installed) || (filter === 'updates' && a.update) || a.group === filter);
 
 async function act(kind, a) {
   try { await window.host[kind](a.id); if (kind === 'open') return; toast(kind === 'install' ? (a.installed ? a.name + ' updated' : a.name + ' installed') : a.name + ' removed'); }
@@ -59,20 +62,23 @@ function row(a) {
 function render() {
   toolbar.textContent = '';
   const upd = state.apps.filter((a) => a.update).length;
-  toolbar.append(...[h('img', { src: 'icons/lookout.png', width: 24, height: 24, alt: '' }), h('strong', { text: 'Lookout', style: 'margin-left:8px' }), h('span', { class: 'grow' }),
+  toolbar.append(...[h('img', { src: 'icons/lookout.png', width: 24, height: 24, alt: '' }), h('strong', { text: 'Lookout', style: 'margin-left:8px' }), h('span', { class: 'grow' }), search,
     upd ? h('button', { class: 'btn primary', onclick: updateAll, text: 'Update all (' + upd + ')' }) : null, h('button', { class: 'btn', onclick: () => refresh(true), disabled: state.loading, text: state.loading ? 'Checking...' : 'Check for updates' })].filter(Boolean));
   side.textContent = ''; side.append(h('h3', { text: 'Library' }));
   for (const [k, t] of FILTERS) {
     const n = k === 'installed' ? state.apps.filter((a) => a.installed).length : k === 'updates' ? upd : null;
     side.append(h('div', { class: 'nav' + (filter === k ? ' on' : ''), onclick: () => { filter = k; render(); } }, h('span', { text: t }), ...(n != null ? [h('span', { class: 'muted', text: String(n) })] : [])));
   }
+  renderList();
+  status.textContent = ''; const ni = state.apps.filter((a) => a.installed).length;
+  status.append(h('span', { text: ni + ' of ' + state.apps.length + ' installed' }), h('span', { class: 'grow' }), h('span', { text: 'Contacts only GitHub, only to look up and download releases' }));
+}
+function renderList() {
   list.textContent = '';
   if (!state.online && !state.loading) list.append(h('div', { class: 'notice', text: 'Cannot reach GitHub. Installed apps still open. Connect to the internet to install or update.' }));
   const v = visible();
-  if (!v.length && !state.loading) list.append(h('div', { class: 'muted', style: 'padding:30px 4px', text: filter === 'updates' ? 'Everything is up to date.' : 'Nothing here yet.' }));
+  if (!v.length && !state.loading) list.append(h('div', { class: 'muted', style: 'padding:30px 4px', text: q ? 'No apps match "' + q + '".' : filter === 'updates' ? 'Everything is up to date.' : 'Nothing here yet.' }));
   for (const a of v) list.append(row(a));
-  status.textContent = ''; const ni = state.apps.filter((a) => a.installed).length;
-  status.append(h('span', { text: ni + ' of ' + state.apps.length + ' installed' }), h('span', { class: 'grow' }), h('span', { text: 'Contacts only GitHub, only to look up and download releases' }));
 }
 window.host.onProgress((p) => { if (p.pct < 0) delete progress[p.id]; else progress[p.id] = p; render(); });
 refresh(false);
