@@ -1,6 +1,6 @@
 <p align="center"><img src="screenshots/banner.png" alt="Lookout" width="100%"></p>
 
-<p align="center"><b>Install and update your apps</b><br>Version 1.0.0 for Windows · Free · No account</p>
+<p align="center"><b>Install and update your apps</b><br>Version 1.0.1 for Windows · Free · No account</p>
 
 <p align="center"><a href="https://github.com/plawanpawin-byte/lookout-launcher/releases/latest"><b>Download Lookout</b></a> · <a href="https://github.com/plawanpawin-byte/Lookout">All Lookout apps</a></p>
 

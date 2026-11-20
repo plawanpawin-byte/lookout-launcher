@@ -54,7 +54,7 @@ function row(a) {
     h('img', { src: 'icons/' + a.id + '.png', width: 48, height: 48, alt: '' }),
     h('div', { style: 'flex:1;min-width:0' }, h('div', { style: 'font-size:15px;font-weight:600', text: a.name }), h('div', { class: 'muted', style: 'font-size:12px', text: a.what }), h('div', { class: 'muted', style: 'font-size:12px;margin-top:2px', text: ver })),
     right,
-    h('button', { class: 'btn icon', title: 'View on GitHub', onclick: () => window.host.repo(a.id), text: 'Info' }));
+    h('button', { class: 'btn', title: 'View on GitHub', onclick: () => window.host.repo(a.id), text: 'Info' }));
 }
 function render() {
   toolbar.textContent = '';
