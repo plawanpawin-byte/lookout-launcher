@@ -67,7 +67,7 @@ function render() {
   side.textContent = ''; side.append(h('h3', { text: 'Library' }));
   for (const [k, t] of FILTERS) {
     const n = k === 'installed' ? state.apps.filter((a) => a.installed).length : k === 'updates' ? upd : null;
-    side.append(h('div', { class: 'nav' + (filter === k ? ' on' : ''), onclick: () => { filter = k; render(); } }, h('span', { text: t }), ...(n != null ? [h('span', { class: 'muted', text: String(n) })] : [])));
+    side.append(h('div', { class: 'nav' + (filter === k ? ' on' : ''), role: 'button', tabindex: 0, 'aria-pressed': String(filter === k), onkeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); filter = k; render(); } }, onclick: () => { filter = k; render(); } }, h('span', { text: t }), ...(n != null ? [h('span', { class: 'muted', text: String(n) })] : [])));
   }
   renderList();
   status.textContent = ''; const ni = state.apps.filter((a) => a.installed).length;
