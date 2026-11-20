@@ -1,6 +1,9 @@
-.app-row{display:flex;align-items:center;gap:14px;padding:12px 14px;border:1px solid var(--line);border-radius:8px;margin-top:10px;background:var(--bg-2)}
-.app-row img{border-radius:10px}
-.nav{display:flex;justify-content:space-between;padding:7px 10px;border-radius:6px;cursor:pointer;font-size:13px}
+.app-row{display:flex;align-items:center;gap:10px;padding:6px 10px;border:1px solid var(--line);border-radius:var(--radius);margin-top:4px;background:var(--bg-2)}
+.app-row:hover{background:var(--bg-3)}
+.app-row img{width:30px;height:30px;border-radius:5px}
+.app-row>div:nth-child(2)>div:first-child{font-size:13px!important}
+.app-row>div:nth-child(2)>div{line-height:1.3}
+.nav{display:flex;justify-content:space-between;padding:4px 8px;border-radius:var(--radius);cursor:pointer;font-size:12px}
 .nav:hover{background:rgba(255,255,255,.06)}
 .nav.on{background:rgba(255,255,255,.12)}
-.notice{margin-top:12px;padding:10px 12px;border:1px solid var(--line);border-radius:6px;font-size:13px}
+.notice{margin-top:8px;padding:6px 10px;border:1px solid var(--line);border-radius:var(--radius);font-size:12px}
