@@ -77,7 +77,7 @@ async function latest(force) {
       if (asset) { data[a.id] = { version: String(j.tag_name || '').replace(/^v/, ''), url: asset.browser_download_url, size: asset.size, digest: asset.digest || '', name: asset.name }; ok++; }
     } catch (_) { /* leave missing */ }
   }));
-  if (ok) cache = { t: Date.now(), data };
+  if (ok) { for (const k of Object.keys(cache.data)) if (!data[k]) data[k] = cache.data[k]; cache = { t: Date.now(), data }; }
   return { data: ok ? data : cache.data, online: ok > 0 };
 }
 const cmpVer = (a, b) => { const A = String(a).split('.').map(Number), B = String(b).split('.').map(Number); for (let i = 0; i < 4; i++) { const d = (A[i] || 0) - (B[i] || 0); if (d) return d; } return 0; };
@@ -98,7 +98,7 @@ const busy = new Set();
 async function download(a, l) {
   if (!okUrl(l.url, DL_HOSTS)) throw new Error('Blocked address');
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'lookout-'));
-  const file = path.join(dir, path.basename(l.name).replace(/[^w.-]/g, '_'));
+  const file = path.join(dir, path.basename(l.name).replace(/[^\w.-]/g, '_'));
   const hash = crypto.createHash('sha256'); let got = 0;
   await new Promise((resolve, reject) => {
     const out = fs.createWriteStream(file);
