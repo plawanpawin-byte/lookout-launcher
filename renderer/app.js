@@ -82,3 +82,7 @@ function renderList() {
 }
 window.host.onProgress((p) => { if (p.pct < 0) delete progress[p.id]; else progress[p.id] = p; render(); });
 refresh(false);
+window.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') { e.preventDefault(); search.focus(); search.select(); }
+  else if (e.key === 'Escape' && document.activeElement === search) { search.value = ''; q = ''; renderList(); search.blur(); }
+});
