@@ -12,7 +12,7 @@ const { spawn, execFile } = require('child_process');
 
 const OWNER = 'plawanpawin-byte';
 const CATALOG = [
-  { id: 'pageout', name: 'Pageout', group: 'Documents', what: 'PDF reader, annotator and organiser' },
+  { id: 'pdfout', name: 'PDFout', group: 'Documents', what: 'PDF reader, annotator and organiser' },
   { id: 'chartout', name: 'Chartout', group: 'Documents', what: 'Flowcharts and diagrams' },
   { id: 'branchout', name: 'Branchout', group: 'Documents', what: 'Mind maps and outlines' },
   { id: 'planout', name: 'Planout', group: 'Documents', what: 'Project plans and Gantt charts' },
