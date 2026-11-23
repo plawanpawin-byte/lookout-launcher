@@ -72,9 +72,11 @@ async function latest(force) {
   const data = {}; let ok = 0;
   await Promise.all(CATALOG.map(async (a) => {
     try {
-      const j = await fetchJson(`https://api.github.com/repos/${OWNER}/${a.id}/releases/latest`);
-      const asset = (j.assets || []).find((x) => /-Setup-.*\.exe$/i.test(x.name));
-      if (asset) { data[a.id] = { version: String(j.tag_name || '').replace(/^v/, ''), url: asset.browser_download_url, size: asset.size, digest: asset.digest || '', name: asset.name }; ok++; }
+      const pick = (j) => { const asset = (j.assets || []).find((x) => /-Setup-.*\.exe$/i.test(x.name)); return asset ? { version: String(j.tag_name || '').replace(/^v/, ''), url: asset.browser_download_url, size: asset.size, digest: asset.digest || '', name: asset.name, beta: !!j.prerelease } : null; };
+      let r = null;
+      try { r = pick(await fetchJson(`https://api.github.com/repos/${OWNER}/${a.id}/releases/latest`)); } catch (_) { /* no stable release: look for a beta */ }
+      if (!r) { const list = await fetchJson(`https://api.github.com/repos/${OWNER}/${a.id}/releases?per_page=10`); for (const j of list) { if (j.draft) continue; r = pick(j); if (r) break; } }
+      if (r) { data[a.id] = r; ok++; }
     } catch (_) { /* leave missing */ }
   }));
   if (ok) { for (const k of Object.keys(cache.data)) if (!data[k]) data[k] = cache.data[k]; cache = { t: Date.now(), data }; }
@@ -88,7 +90,7 @@ async function listApps(force) {
     online: lat.online,
     apps: CATALOG.map((a) => {
       const i = inst[a.id], l = lat.data[a.id];
-      return { id: a.id, name: a.name, group: a.group, what: a.what, installed: !!i, version: i ? i.version : '', latest: l ? l.version : '', size: l ? l.size : 0, update: !!(i && l && i.version && cmpVer(l.version, i.version) > 0), available: !!l, busy: busy.has(a.id) };
+      return { id: a.id, name: a.name, group: a.group, what: a.what, installed: !!i, version: i ? i.version : '', latest: l ? l.version : '', beta: !!(l && l.beta), size: l ? l.size : 0, update: !!(i && l && i.version && cmpVer(l.version, i.version) > 0), available: !!l, busy: busy.has(a.id) };
     }),
   };
 }

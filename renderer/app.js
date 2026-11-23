@@ -52,7 +52,8 @@ function row(a) {
     right.append(...[a.update ? h('button', { class: 'btn primary', onclick: () => act('install', a), text: 'Update' }) : null, h('button', { class: a.update ? 'btn' : 'btn primary', onclick: () => act('open', a), text: 'Open' }),
       h('button', { class: 'btn', title: 'Remove ' + a.name, onclick: () => { if (confirm('Remove ' + a.name + ' from this computer? Your own files are not deleted.')) act('uninstall', a); }, text: 'Remove' })].filter(Boolean));
   } else right.append(h('button', { class: 'btn primary', disabled: !a.available || !state.online, title: a.available ? '' : 'Not available offline', onclick: () => act('install', a), text: 'Install' + (a.size ? ' · ' + mb(a.size) : '') }));
-  const ver = a.installed ? 'Version ' + (a.version || '?') + (a.update ? ' · ' + a.latest + ' available' : ' · up to date') : (a.latest ? 'Version ' + a.latest : 'Not installed');
+  const bt = a.beta ? ' (beta)' : '';
+  const ver = a.installed ? 'Version ' + (a.version || '?') + (a.update ? ' · ' + a.latest + bt + ' available' : ' · up to date') : (a.latest ? 'Version ' + a.latest + bt : 'Not installed');
   return h('div', { class: 'app-row' },
     h('img', { src: 'icons/' + a.id + '.png', width: 48, height: 48, alt: '' }),
     h('div', { style: 'flex:1;min-width:0' }, h('div', { style: 'font-size:15px;font-weight:600', text: a.name }), h('div', { class: 'muted', style: 'font-size:12px', text: a.what }), h('div', { class: 'muted', style: 'font-size:12px;margin-top:2px', text: ver })),
