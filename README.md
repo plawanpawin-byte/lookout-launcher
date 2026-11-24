@@ -33,7 +33,11 @@ It is like a small shop for one family of apps, with no account and no payment.
 2. Press **Install** next to an app; it downloads and sets itself up.
 3. Come back later; **Updates** will list any app with a newer version.
 
-## What is new in 1.0.8
+## What is new in 1.0.10
+
+The library now follows the same Google-style look as Frameout: a top bar with search, a navigation drawer with Installed and Updates counts, rounded app cards with version chips and progress bars, and a proper Remove dialog. Keyboard focus now stays put while apps download.
+
+## Earlier: 1.0.8
 
 A new look inspired by Google's own tools (AI Studio, Colab, Gemini): a calm dark charcoal theme, rounded pill buttons, a soft blue accent and roomier spacing. The app icon is now a colour logo so you can find Lookout at a glance in the Start menu and in the Lookout launcher. All screenshots below were taken again with the new look. The program now shows under its own name (not Electron) in Task Manager and the taskbar.
 
