@@ -1,9 +1,141 @@
-.app-row{display:flex;align-items:center;gap:10px;padding:6px 10px;border:1px solid var(--line);border-radius:var(--radius);margin-top:4px;background:var(--bg-2)}
-.app-row:hover{background:var(--bg-3)}
-.app-row img{width:30px;height:30px;border-radius:5px}
-.app-row>div:nth-child(2)>div:first-child{font-size:13px!important}
-.app-row>div:nth-child(2)>div{line-height:1.3}
-.nav{display:flex;justify-content:space-between;padding:4px 8px;border-radius:var(--radius);cursor:pointer;font-size:12px}
-.nav:hover{background:rgba(255,255,255,.06)}
-.nav.on{background:rgba(255,255,255,.12)}
-.notice{margin-top:8px;padding:6px 10px;border:1px solid var(--line);border-radius:var(--radius);font-size:12px}
+/* Lookout launcher: Google-style dark home (Gemini / NotebookLM family, same as Frameout) on the Lookout kit tokens */
+:root{
+  --tonal:#004a77; --on-tonal:#c2e7ff;            /* Material 3 dark secondary container: selected and tonal states */
+  --hover:rgba(227,227,227,.08); --press:rgba(227,227,227,.12);
+  --elev-2:0 1px 2px rgba(0,0,0,.3),0 2px 6px 2px rgba(0,0,0,.15);
+  --elev-3:0 1px 3px rgba(0,0,0,.3),0 4px 8px 3px rgba(0,0,0,.15);
+  --ok:#6dd58c;
+}
+html,body{font-size:14px}
+[hidden]{display:none!important}
+.grow{flex:1 1 auto;min-width:0}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+svg.ms{display:block;flex:none}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+
+/* ---------- top app bar ---------- */
+.topbar{display:flex;align-items:center;gap:8px;min-height:64px;padding:8px 16px 8px 16px;background:var(--bg);min-width:0}
+.brand-g{display:flex;align-items:center;gap:10px;flex:none;width:240px;padding-left:4px;font-size:22px;font-weight:400;color:var(--text)}
+.brand-g img{width:32px;height:32px;border-radius:8px;display:block}
+.searchbox{display:flex;align-items:center;gap:8px;flex:0 1 560px;min-width:160px;height:48px;padding:0 6px 0 16px;border-radius:24px;background:var(--bg-2);color:var(--text-3);cursor:text;transition:background .15s}
+.searchbox:hover{background:var(--bg-3)}
+.searchbox:focus-within{background:var(--bg-3);box-shadow:inset 0 0 0 1px var(--line-2)}
+.searchbox input[type=search]{flex:1;min-width:0;width:auto;height:44px;padding:0;border:0;background:transparent;color:var(--text);font-size:16px}
+.searchbox input[type=search]:focus,.searchbox input[type=search]:hover{background:transparent;border:0;outline:none}
+.searchbox input[type=search]::-webkit-search-cancel-button{display:none}
+.searchbox .ib{width:36px;height:36px}
+
+/* circular 40px icon buttons */
+.ib{position:relative;display:inline-flex;align-items:center;justify-content:center;flex:none;width:40px;height:40px;padding:0;border:0;border-radius:50%;background:transparent;color:var(--text-2);cursor:pointer;transition:background .12s,color .12s}
+.ib:hover{background:var(--hover);color:var(--text)}
+.ib:active{background:var(--press)}
+.ib[disabled]{cursor:default;opacity:.6}
+.ib.spin svg{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* pill buttons: primary (filled), tonal, text */
+.pill{display:inline-flex;align-items:center;justify-content:center;gap:8px;flex:none;height:40px;padding:0 24px;border:0;border-radius:20px;font-size:14px;font-weight:500;white-space:nowrap;cursor:pointer;transition:background .12s,box-shadow .12s}
+.pill:has(>svg){padding-left:16px}
+.pill.primary{background:var(--accent);color:var(--accent-ink)}
+.pill.primary:hover{background:#c2d7fb;box-shadow:var(--elev-2)}
+.pill.tonal{background:var(--tonal);color:var(--on-tonal)}
+.pill.text{background:transparent;color:var(--accent);padding:0 12px}
+.pill.text:hover{background:rgba(168,199,250,.08)}
+.pill[disabled]{background:rgba(227,227,227,.12);color:rgba(227,227,227,.38);box-shadow:none;cursor:default}
+
+/* ---------- body: drawer + content panel with 8px gutters ---------- */
+.body{display:flex;min-height:0;min-width:0;gap:8px;padding:0 8px 0 0}
+.drawer{display:flex;flex-direction:column;gap:2px;width:256px;flex:none;padding:4px 12px 12px;overflow:hidden auto}
+.dsec{margin:16px 16px 6px;font-size:12px;font-weight:500;letter-spacing:.1px;color:var(--text-3)}
+.dsec:first-child{margin-top:4px}
+.navlist{display:flex;flex-direction:column;gap:2px}
+.nv{display:flex;align-items:center;gap:12px;width:100%;height:48px;flex:none;padding:0 16px 0 16px;border:0;border-radius:24px;background:transparent;color:var(--text-2);font-size:14px;font-weight:500;text-align:left;cursor:pointer;white-space:nowrap}
+.nv:hover{background:var(--hover);color:var(--text)}
+.nv:active{background:var(--press)}
+.nv.on,.nv.on:hover{background:var(--tonal);color:var(--on-tonal)}
+.nic{position:relative;width:24px;height:24px;flex:none;display:flex;align-items:center;justify-content:center}
+.nlabel{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.cnt{font-size:12px;color:inherit;opacity:.85}
+.cnt:empty{display:none}
+.cnt.badge{min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:var(--accent);color:var(--accent-ink);font-weight:500;opacity:1;display:inline-flex;align-items:center;justify-content:center}
+.drawer-foot{padding:8px 16px 0;font-size:12px;color:var(--text-3)}
+
+.content{flex:1;min-width:0;min-height:0;overflow:auto;background:var(--bg-2);border-radius:16px}
+.inner{max-width:1120px;margin:0 auto;padding:36px 40px 48px}
+.hero h1{font-size:40px;line-height:48px;font-weight:400;margin:0;background:linear-gradient(74deg,#4285f4 0,#9b72cb 40%,#d96570 75%);-webkit-background-clip:text;background-clip:text;color:transparent;width:max-content;max-width:100%}
+.lead{margin-top:8px;font-size:16px;color:var(--text-3)}
+.sechd{font-size:16px;font-weight:500;color:var(--text);margin:32px 0 14px}
+
+/* offline notice: a tonal banner */
+.notice{display:flex;align-items:center;gap:12px;margin-top:24px;padding:12px 20px;border-radius:16px;background:#3a2a10;color:#fdd663;font-size:14px}
+.notice svg{flex:none}
+
+/* ---------- app cards ---------- */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.card{display:flex;flex-direction:column;gap:10px;min-width:0;padding:20px 16px 12px 20px;border-radius:20px;background:var(--bg-3);transition:background .15s,box-shadow .15s}
+.card:hover{background:var(--bg-4);box-shadow:var(--elev-2)}
+.card:focus-within{background:var(--bg-4)}
+.ctop{display:flex;align-items:center;gap:14px;min-width:0}
+.ctop img{width:48px;height:48px;border-radius:12px;flex:none;display:block}
+.cnames{min-width:0;flex:1}
+.cname{font-size:16px;line-height:22px;font-weight:500;color:var(--text);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cwhat{font-size:13px;line-height:18px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cver{font-size:12px;color:var(--text-2);font-variant-numeric:tabular-nums}
+.chips{display:flex;flex-wrap:wrap;gap:6px;min-height:24px}
+.chip{display:inline-flex;align-items:center;gap:4px;height:24px;padding:0 10px;border-radius:8px;font-size:12px;font-weight:500;background:transparent;box-shadow:inset 0 0 0 1px var(--line-2);color:var(--text-2)}
+.chip.tonal{background:var(--tonal);color:var(--on-tonal);box-shadow:none}
+.chip.ok{color:var(--ok);padding-left:6px}
+.chip.beta{color:#fdd663;box-shadow:inset 0 0 0 1px #6b5a1e}
+.acts{display:flex;align-items:center;gap:2px;margin-top:auto;padding-top:4px;min-height:44px}
+.acts .pill{flex:none;margin-right:8px}
+.acts .grow{flex:1 1 0}
+.prog{flex:1;min-width:0;padding-right:8px}
+.plabel{font-size:12px;color:var(--text-2);margin-bottom:6px}
+.progress.lin{height:4px;border-radius:2px;background:var(--bg)}
+.progress.lin>div{border-radius:2px;transition:width .2s}
+.progress.lin.indet>div{width:40%!important;animation:indet 1.2s ease-in-out infinite}
+@keyframes indet{0%{transform:translateX(-100%)}100%{transform:translateX(260%)}}
+
+/* loading skeleton and empty state */
+.card.skel{pointer-events:none}
+.sk{display:block;border-radius:8px;background:var(--bg-4);animation:pulse 1.4s ease-in-out infinite}
+.sk.ico{width:48px;height:48px;border-radius:12px;flex:none}
+.sk.l1{width:50%;height:14px;margin-bottom:8px}.sk.l2{width:80%;height:10px}.sk.l3{width:60%;height:10px}.sk.btn{width:120px;height:40px;border-radius:20px;margin-top:8px}
+@keyframes pulse{50%{opacity:.5}}
+.empty-g{grid-column:1/-1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:48px 24px;border-radius:20px;background:var(--bg-3);text-align:center;color:var(--text-3)}
+.empty-g svg{margin-bottom:6px}
+.etitle{font-size:16px;color:var(--text)}
+.esub{font-size:13px}
+
+/* ---------- footer status line ---------- */
+.foot{display:flex;align-items:center;gap:8px;height:32px;padding:0 20px;color:var(--text-3);font-size:12px;white-space:nowrap;overflow:hidden;min-width:0}
+.foot span{overflow:hidden;text-overflow:ellipsis}
+
+/* ---------- M3 dialog and snackbar ---------- */
+.scrim{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(0,0,0,.5)}
+.dialog{display:flex;flex-direction:column;gap:16px;width:min(400px,100%);padding:24px;border-radius:28px;background:var(--bg-3);box-shadow:var(--elev-3)}
+.dialog h2{font-size:24px;line-height:32px;font-weight:400;color:var(--text)}
+.dialog p{font-size:14px;line-height:20px;color:var(--text-2)}
+.dlg-acts{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}
+.snacks{position:fixed;left:24px;bottom:44px;z-index:60;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.snacks .toast{position:static;transform:none;max-width:min(560px,calc(100vw - 48px));padding:14px 16px;border-radius:8px;font-size:14px;background:#e3e3e3;color:#1f1f1f;box-shadow:var(--elev-3)}
+
+/* ---------- narrow windows: drawer becomes a rail (container queries on .app, so the layout follows the app width) ---------- */
+.app{container:lk/inline-size}
+@container lk (max-width:960px){
+  .brand-g{width:auto;padding-right:8px}
+  .drawer{width:88px;padding:4px 12px 12px}
+  .dsec{height:1px;margin:10px 8px;overflow:hidden;font-size:0;background:var(--line)}
+  .dsec:first-child{display:none}
+  .nv{width:64px;height:40px;padding:0;justify-content:center;border-radius:20px}
+  .nlabel{display:none}
+  .nv .cnt{display:none}
+  .nv{position:relative}
+  .nv .cnt.badge{display:inline-flex;position:absolute;top:2px;right:12px;min-width:16px;height:16px;padding:0 4px;font-size:10px}
+  .drawer-foot{display:none}
+  .inner{padding:28px 24px 40px}
+  .hero h1{font-size:32px;line-height:40px}
+}
+@container lk (max-width:640px){
+  .brand-g span{display:none}
+}
