@@ -57,7 +57,7 @@ const app = $('#app');
 let q = '';
 const search = h('input', { type: 'search', placeholder: 'Search apps', 'aria-label': 'Search apps', spellcheck: 'false', oninput: (e) => { q = e.target.value.trim().toLowerCase(); syncSearch(); renderList(); } });
 const clearBtn = ib('close', 'Clear search', () => { search.value = ''; q = ''; syncSearch(); renderList(); search.focus(); });
-const searchBox = h('div', { class: 'searchbox', onclick: (e) => { if (e.target === searchBox) search.focus(); } }, icon('search'), search, clearBtn);
+const searchBox = h('div', { class: 'searchbox', onclick: (e) => { if (!e.target.closest('button,input')) search.focus(); } }, icon('search'), search, clearBtn);
 function syncSearch() { clearBtn.hidden = !search.value; }
 const updAllBtn = pill('primary', 'update', 'Update all', () => updateAll(), { 'aria-label': 'Update all' });
 const refreshBtn = ib('refresh', 'Check for updates', () => refresh(true));
@@ -105,14 +105,25 @@ async function act(kind, a) {
   catch (e) { toast(String(e.message || e).replace(/^Error invoking remote method '[^']+': (Error: )?/, '').slice(0, 140)); }
   await refresh(false);
 }
-async function updateAll() { for (const a of state.apps.filter((x) => x.update && !x.busy)) await act('install', a); }
+// one Update all loop at a time; the button is disabled while it runs
+let updating = false;
+async function updateAll() {
+  if (updating) return;
+  updating = true; render();
+  try { for (const a of state.apps.filter((x) => x.update && !x.busy)) await act('install', a); }
+  finally { updating = false; render(); }
+}
 
 // ---------- M3 dialog: Esc or Cancel closes, focus returns to the button that opened it ----------
 function confirmDialog({ title, body, ok, opener }) {
   return new Promise((resolve) => {
     const prev = opener || document.activeElement;
+    let done = false;
     const close = (v) => {
-      back.remove(); window.removeEventListener('keydown', onKey, true);
+      if (done) return; done = true;
+      window.removeEventListener('keydown', onKey, true);
+      // the faded scrim stays for half a second and swallows the second click of a double click
+      back.classList.add('closing'); setTimeout(() => back.remove(), 500);
       let f = prev && prev.isConnected ? prev : null;
       if (!f && prev && prev.dataset && prev.dataset.act) f = document.querySelector('[data-act="' + prev.dataset.act + '"][data-id="' + prev.dataset.id + '"]');
       if (f) f.focus();
@@ -122,7 +133,7 @@ function confirmDialog({ title, body, ok, opener }) {
     const yes = h('button', { type: 'button', class: 'pill primary', onclick: () => close(true) }, h('span', { text: ok }));
     const dlg = h('div', { class: 'dialog', role: 'alertdialog', 'aria-modal': 'true', 'aria-labelledby': 'dlg-t', 'aria-describedby': 'dlg-b' },
       h('h2', { id: 'dlg-t', text: title }), h('p', { id: 'dlg-b', text: body }), h('div', { class: 'dlg-acts' }, cancel, yes));
-    const back = h('div', { class: 'scrim', onmousedown: (e) => { if (e.target === back) close(false); } }, dlg);
+    const back = h('div', { class: 'scrim', onmousedown: (e) => { if (done) { e.preventDefault(); return; } if (e.target === back) close(false); } }, dlg);
     const onKey = (e) => {
       if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(false); }
       else if (e.key === 'Tab') { const f = [cancel, yes], i = f.indexOf(document.activeElement); e.preventDefault(); f[(i + (e.shiftKey ? f.length - 1 : 1)) % f.length].focus(); }
@@ -137,6 +148,7 @@ async function askRemove(a, btn) {
 }
 
 // ---------- cards ----------
+const plabel = (p) => p.phase + (p.phase === 'Downloading' ? ' ' + p.pct + '%' : '...');
 function card(a) {
   const p = progress[a.id]; const working = p && p.pct >= 0;
   const bt = a.beta ? ' (beta)' : '';
@@ -149,18 +161,18 @@ function card(a) {
   if (working) {
     const det = p.phase === 'Downloading';
     acts.append(h('div', { class: 'prog' },
-      h('div', { class: 'plabel', text: p.phase + (det ? ' ' + p.pct + '%' : '...') }),
+      h('div', { class: 'plabel', text: plabel(p) }),
       h('div', { class: 'progress lin' + (det ? '' : ' indet'), role: 'progressbar', 'aria-label': p.phase + ' ' + a.name, 'aria-valuemin': 0, 'aria-valuemax': 100, 'aria-valuenow': det ? p.pct : null }, h('div', { style: 'width:' + (det ? p.pct : 100) + '%' }))));
   } else if (a.installed) {
-    acts.append(a.update ? pill('primary', 'update', 'Update', () => act('install', a)) : pill('primary', 'open', 'Open', () => act('open', a)), h('span', { class: 'grow' }));
-    if (a.update) acts.append(ib('open', 'Open', () => act('open', a), { title: 'Open ' + a.name }));
+    acts.append(a.update ? pill('primary', 'update', 'Update', () => act('install', a), { 'data-act': 'install', 'data-id': a.id, 'data-primary': true }) : pill('primary', 'open', 'Open', () => act('open', a), { 'data-act': 'open', 'data-id': a.id, 'data-primary': true }), h('span', { class: 'grow' }));
+    if (a.update) acts.append(ib('open', 'Open', () => act('open', a), { title: 'Open ' + a.name, attrs: { 'data-act': 'open', 'data-id': a.id } }));
     const rm = ib('del', 'Remove', () => askRemove(a, rm), { title: 'Remove ' + a.name, attrs: { 'data-act': 'uninstall', 'data-id': a.id } });
     acts.append(rm);
   } else {
     const can = a.available && state.online;
-    acts.append(pill('primary', 'download', 'Install' + (a.size ? ' · ' + mb(a.size) : ''), () => act('install', a), { disabled: !can, title: can ? 'Install ' + a.name : 'Not available offline' }), h('span', { class: 'grow' }));
+    acts.append(pill('primary', 'download', 'Install' + (a.size ? ' · ' + mb(a.size) : ''), () => act('install', a), { disabled: !can, title: can ? 'Install ' + a.name : 'Not available offline', 'data-act': 'install', 'data-id': a.id, 'data-primary': true }), h('span', { class: 'grow' }));
   }
-  acts.append(ib('info', 'Info', () => window.host.repo(a.id), { title: 'View ' + a.name + ' on GitHub' }));
+  acts.append(ib('info', 'Info', () => window.host.repo(a.id), { title: 'View ' + a.name + ' on GitHub', attrs: { 'data-act': 'info', 'data-id': a.id } }));
   return h('article', { class: 'card' + (working ? ' busy' : ''), role: 'listitem', 'aria-label': a.name, 'data-id': a.id },
     h('div', { class: 'ctop' }, h('img', { src: 'icons/' + a.id + '.png', width: 48, height: 48, alt: '' }),
       h('div', { class: 'cnames' }, h('h3', { class: 'cname', text: a.name }), h('div', { class: 'cwhat', text: a.what }))),
@@ -171,7 +183,7 @@ const skeleton = () => h('div', { class: 'card skel', 'aria-hidden': 'true' }, h
 function render() {
   const upd = state.apps.filter((a) => a.update).length;
   const ni = state.apps.filter((a) => a.installed).length;
-  updAllBtn.hidden = !upd; updAllBtn.querySelector('span').textContent = 'Update all (' + upd + ')'; updAllBtn.setAttribute('aria-label', 'Update all (' + upd + ')');
+  updAllBtn.hidden = !upd; updAllBtn.disabled = updating; updAllBtn.querySelector('span').textContent = 'Update all (' + upd + ')'; updAllBtn.setAttribute('aria-label', 'Update all (' + upd + ')');
   refreshBtn.disabled = state.loading; refreshBtn.classList.toggle('spin', !!state.loading);
   refreshBtn.title = state.loading ? 'Checking...' : 'Check for updates'; refreshBtn.setAttribute('aria-label', refreshBtn.title);
   for (const [k] of FILTERS) {
@@ -186,8 +198,28 @@ function render() {
   footer.textContent = '';
   footer.append(h('span', { text: ni + ' of ' + state.apps.length + ' installed' }), h('span', { class: 'grow' }), icon('shield', 16), h('span', { text: 'Contacts only GitHub, only to look up and download releases' }));
 }
+// Re-rendering the grid replaces the card buttons, so focus is put back on the same card and action (data-id + data-act).
+// If that action is gone (Install or Update turned into a progress bar), focus goes to the card's primary pill or its Info button;
+// when the card is done, focus moves from Info back to the new primary pill (Open).
+let focusBack = null;
+function keepFocus(had) {
+  const c = grid.querySelector('.card[data-id="' + CSS.escape(had.id) + '"]'); if (!c) return;
+  const live = (sel) => c.querySelector(sel + ':not([disabled])');
+  let t = had.act === 'info' && focusBack === had.id ? live('[data-primary]') : null;
+  if (t) focusBack = null;
+  else t = (had.act && live('[data-act="' + had.act + '"]')) || (had.act !== 'info' && live('[data-primary]'));
+  if (!t) { t = c.querySelector('[data-act=info]'); if (had.act !== 'info') focusBack = had.id; }
+  if (t) t.focus({ preventScroll: true });
+}
 function renderList() {
+  const ae = document.activeElement, cardEl = ae && grid.contains(ae) ? ae.closest('.card[data-id]') : null;
+  const had = cardEl ? { id: cardEl.dataset.id, act: ae.dataset.act || '' } : null;
+  if (!had || had.act !== 'info' || had.id !== focusBack) focusBack = null;
+  const top = content.scrollTop;
   noticeBox.textContent = ''; grid.textContent = '';
+  try { fillList(); } finally { if (had) keepFocus(had); content.scrollTop = top; }
+}
+function fillList() {
   heading.textContent = HEADS[filter] || 'Library';
   if (!state.online && !state.loading) noticeBox.append(h('div', { class: 'notice', role: 'status' }, icon('offline'), h('span', { text: 'Cannot reach GitHub. Installed apps still open. Connect to the internet to install or update.' })));
   if (state.loading && !state.apps.length) { for (let i = 0; i < 6; i++) grid.append(skeleton()); return; }
@@ -199,7 +231,24 @@ function renderList() {
   }
   for (const a of v) grid.append(card(a));
 }
-window.host.onProgress((p) => { if (p.pct < 0) delete progress[p.id]; else progress[p.id] = p; render(); });
+// Progress events update the existing bar in place (so the width transition plays); anything else re-renders.
+function patchProgress(p) {
+  const bar = grid.querySelector('.card[data-id="' + CSS.escape(p.id) + '"] .progress.lin'); if (!bar) return false;
+  const det = p.phase === 'Downloading';
+  if (bar.classList.contains('indet') === det) return false;
+  const a = state.apps.find((x) => x.id === p.id);
+  bar.firstChild.style.width = (det ? p.pct : 100) + '%';
+  if (det) bar.setAttribute('aria-valuenow', p.pct);
+  bar.setAttribute('aria-label', p.phase + ' ' + (a ? a.name : p.id));
+  bar.previousSibling.textContent = plabel(p);
+  return true;
+}
+function onProg(p) {
+  if (p.pct < 0) delete progress[p.id]; else progress[p.id] = p;
+  if (p.pct >= 0 && patchProgress(p)) return;
+  render();
+}
+window.host.onProgress(onProg);
 refresh(false);
 window.addEventListener('keydown', (e) => {
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') { e.preventDefault(); search.focus(); search.select(); }
